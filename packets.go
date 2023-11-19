@@ -17,7 +17,9 @@ import (
 	"fmt"
 	"io"
 	"math"
+	"runtime"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -428,6 +430,26 @@ func (mc *mysqlConn) writeCommandPacket(command byte) error {
 func (mc *mysqlConn) writeCommandPacketStr(command byte, arg string) error {
 	// Reset Packet Sequence
 	mc.sequence = 0
+
+	// isucon
+	if MYSQL_ISUCON_SRCDIR != "" {
+		callers := make([]uintptr, 64)
+		n := runtime.Callers(0, callers)
+		if n > 0 {
+			callers = callers[:n]
+			frames := runtime.CallersFrames(callers)
+			for {
+				frame, more := frames.Next()
+				if strings.HasPrefix(frame.File, MYSQL_ISUCON_SRCDIR) {
+					arg = fmt.Sprintf("/* %s:%d */ %s", frame.File, frame.Line, arg)
+					break
+				}
+				if !more {
+					break
+				}
+			}
+		}
+	}
 
 	pktLen := 1 + len(arg)
 	data, err := mc.buf.takeBuffer(pktLen + 4)
