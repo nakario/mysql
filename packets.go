@@ -21,6 +21,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/percona/go-mysql/query"
 )
 
 // Packets documentation:
@@ -441,7 +443,7 @@ func (mc *mysqlConn) writeCommandPacketStr(command byte, arg string) error {
 			for {
 				frame, more := frames.Next()
 				if strings.HasPrefix(frame.File, MYSQL_ISUCON_SRCDIR) {
-					arg = fmt.Sprintf("/* caller: %s:%d */ %s", frame.File, frame.Line, arg)
+					arg = fmt.Sprintf("/* xfp: \ue000%s:%d %s\ue000 */ %s", frame.File, frame.Line, query.Fingerprint(arg), arg)
 					break
 				}
 				if !more {
