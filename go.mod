@@ -1,3 +1,3 @@
-module github.com/go-sql-driver/mysql
+module github.com/nakario/mysql
 
 go 1.18
